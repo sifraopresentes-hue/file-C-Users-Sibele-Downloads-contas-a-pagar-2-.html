@@ -1,0 +1,988 @@
+<html lang="pt-BR"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contas a Pagar — NF-e</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&amp;family=DM+Mono:wght@300;400;500&amp;display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #181818;
+    --surface2: #222222;
+    --border: #2e2e2e;
+    --accent: #c8f135;
+    --accent2: #f1c835;
+    --red: #ff5c5c;
+    --text: #f0f0f0;
+    --muted: #888;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    min-height: 100vh;
+    padding: 32px 20px;
+  }
+
+  header {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 20px;
+  }
+
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    font-weight: 400;
+    letter-spacing: -0.5px;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  header h1 span { color: var(--accent); font-style: italic; }
+
+  header p {
+    color: var(--muted);
+    font-size: 11px;
+    margin-left: auto;
+    text-align: right;
+    line-height: 1.6;
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--surface);
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: var(--accent);
+    background: #1a1f0a;
+  }
+
+  .drop-zone input[type=file] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+  }
+
+  .drop-zone .icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .drop-zone p {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.8;
+  }
+
+  .drop-zone strong { color: var(--accent); font-weight: 500; }
+
+  .or-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .or-row::before, .or-row::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  .xml-paste-area {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 14px;
+    resize: vertical;
+    min-height: 90px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .xml-paste-area:focus { border-color: var(--accent); }
+  .xml-paste-area::placeholder { color: var(--muted); }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0f0f0f;
+  }
+  .btn-primary:hover { background: #d8ff45; transform: translateY(-1px); }
+
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-save {
+    background: var(--surface2);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    margin-left: auto;
+  }
+  .btn-save:hover { background: var(--accent); color: #0f0f0f; }
+
+  .btn-danger {
+    background: transparent;
+    color: var(--red);
+    border: 1px solid var(--border);
+  }
+  .btn-danger:hover { border-color: var(--red); }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+  }
+
+  .stat-card .label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .stat-card .value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--text);
+  }
+
+  .stat-card.accent .value { color: var(--accent); }
+  .stat-card.danger .value { color: var(--red); }
+  .stat-card.warn .value { color: var(--accent2); }
+
+  .section-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    align-items: center;
+  }
+
+  .filter-btn {
+    font-size: 11px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Mono', monospace;
+  }
+  .filter-btn.active, .filter-btn:hover {
+    background: var(--surface2);
+    color: var(--text);
+    border-color: var(--accent);
+  }
+
+  .search-input {
+    margin-left: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 6px 12px;
+    outline: none;
+    width: 200px;
+    transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--muted); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  thead tr {
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    text-align: left;
+    padding: 10px 12px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    font-weight: 400;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  th:hover { color: var(--accent); }
+
+  td {
+    padding: 12px 12px;
+    border-bottom: 1px solid #1e1e1e;
+    vertical-align: middle;
+  }
+
+  tr:hover td { background: var(--surface); }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+  .badge-ok { background: #1a2f00; color: var(--accent); border: 1px solid #2a4800; }
+  .badge-vence { background: #2f2200; color: var(--accent2); border: 1px solid #4a3600; }
+  .badge-vencido { background: #2f0000; color: var(--red); border: 1px solid #4a0000; }
+  .badge-pago { background: #0f1f2f; color: #5bc0ff; border: 1px solid #1a3a5a; }
+
+  .valor { font-variant-numeric: tabular-nums; }
+  .fornecedor-name { font-weight: 500; color: var(--text); }
+  .cnpj { color: var(--muted); font-size: 10px; }
+
+  .action-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--muted);
+    padding: 4px 8px;
+    font-size: 10px;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    transition: all 0.15s;
+    margin-right: 4px;
+  }
+  .action-btn:hover { color: var(--text); border-color: var(--text); }
+  .action-btn.pago:hover { color: #5bc0ff; border-color: #5bc0ff; }
+  .action-btn.del:hover { color: var(--red); border-color: var(--red); }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty-state .big { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 12px; line-height: 1.8; }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 12px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    pointer-events: none;
+    z-index: 999;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.error { border-color: var(--red); color: var(--red); }
+
+  .prazo-group { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+  .prazo-group label { color: var(--muted); font-size: 11px; }
+  .prazo-input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 6px 10px;
+    width: 70px;
+    outline: none;
+  }
+  .prazo-input:focus { border-color: var(--accent); }
+
+  #tableWrap { overflow-x: auto; }
+
+  @media (max-width: 600px) {
+    header { flex-direction: column; align-items: flex-start; }
+    header p { margin-left: 0; text-align: left; }
+    .search-input { width: 100%; margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Contas a <span>Pagar</span></h1>
+    <div style="color:var(--muted);font-size:11px;margin-top:6px;">Importação por XML de NF-e</div>
+  </div>
+  <p id="lastUpdate" style="">Última atualização
+10/04/2026, 16:41:02</p>
+</header>
+
+<!-- IMPORTAÇÃO -->
+<div class="section-title">Importar Nota Fiscal</div>
+
+<div class="drop-zone" id="dropZone">
+  <input type="file" id="fileInput" accept=".xml" multiple="">
+  <span class="icon">📂</span>
+  <p><strong>Arraste XMLs aqui</strong> ou clique para selecionar<br>Aceita múltiplos arquivos de uma vez</p>
+</div>
+
+<div class="or-row">ou cole o XML abaixo</div>
+
+<textarea class="xml-paste-area" id="xmlPaste" placeholder="Cole aqui o conteúdo do XML da NF-e..."></textarea>
+
+<div class="prazo-group">
+  <label>Prazo padrão (dias):</label>
+  <input type="number" class="prazo-input" id="prazoPadrao" value="30" min="0" max="999">
+  <span style="color:var(--muted);font-size:11px;">(usado quando o XML não tem vencimento)</span>
+</div>
+
+<div class="btn-row">
+  <button class="btn-primary" onclick="processarXML()">⚡ Processar XML</button>
+  <button class="btn-secondary" onclick="exportarCSV()">↓ Exportar CSV</button>
+  <button class="btn-secondary" onclick="exportarExcel()">↓ Exportar Excel</button>
+  <button class="btn-danger" onclick="limparTudo()">✕ Limpar Tudo</button>
+  <button class="btn-save" onclick="salvarHTML()">💾 Salvar HTML</button>
+</div>
+
+<!-- STATS -->
+<div class="stats" id="stats" style="display: grid;">
+  <div class="stat-card">
+    <div class="label">Total de NFs</div>
+    <div class="value" id="statTotal">9</div>
+  </div>
+  <div class="stat-card accent">
+    <div class="label">A Vencer</div>
+    <div class="value" id="statAVencer">R$ 79.985,77</div>
+  </div>
+  <div class="stat-card danger">
+    <div class="label">Vencido</div>
+    <div class="value" id="statVencido">R$ 0,00</div>
+  </div>
+  <div class="stat-card warn">
+    <div class="label">Vence em 7 dias</div>
+    <div class="value" id="statProximo">R$ 23.190,44</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Total Geral</div>
+    <div class="value" id="statGeral">R$ 79.985,77</div>
+  </div>
+</div>
+
+<!-- TABELA -->
+<div class="section-title" style="margin-top:8px">Lançamentos</div>
+
+<div class="filters">
+  <button class="filter-btn active" onclick="setFiltro('todos', this)">Todos</button>
+  <button class="filter-btn" onclick="setFiltro('avencer', this)">A Vencer</button>
+  <button class="filter-btn" onclick="setFiltro('vence7', this)">Próx. 7 dias</button>
+  <button class="filter-btn" onclick="setFiltro('vencido', this)">Vencidos</button>
+  <button class="filter-btn" onclick="setFiltro('pago', this)">Pagos</button>
+  <input type="text" class="search-input" placeholder="Buscar fornecedor..." oninput="renderTabela()" id="searchInput">
+</div>
+
+<div id="tableWrap">
+  <div class="empty-state" id="emptyState" style="display: none;">
+    <div class="big">📄</div>
+    <p>Nenhuma nota importada ainda.<br>Arraste um XML ou cole o conteúdo acima.</p>
+  </div>
+  <table id="tabela" style="display: table;">
+    <thead>
+      <tr>
+        <th onclick="sortBy('fornecedor')">Fornecedor (Emitente)</th>
+        <th onclick="sortBy('dest_nome')">Destinatário</th>
+        <th onclick="sortBy('nf')">NF</th>
+        <th onclick="sortBy('parcela')">Parcela</th>
+        <th onclick="sortBy('emissao')">Emissão</th>
+        <th onclick="sortBy('vencimento')">Vencimento</th>
+        <th onclick="sortBy('valor')">Valor</th>
+        <th>Status</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="tbodyMain"><tr>
+      <td>
+        <div class="fornecedor-name">PLASUTIL INDUSTRIA E COMERCIO DE PLASTICOS LTDA</div>
+        <div class="cnpj">56.450.877/0003-09</div>
+      </td>
+      <td>
+        <div class="fornecedor-name" style="font-size:11px">ESTRELA COMERCIO DE UTILIDADES LTDA</div>
+      </td>
+      <td>1249400</td>
+      <td style="text-align:center">001/003</td>
+      <td>24/03/2026</td>
+      <td>11/04/2026</td>
+      <td class="valor">R$ 23.190,44</td>
+      <td><span class="badge badge-vence">VENCE EM BREVE</span></td>
+      <td>
+        <button class="action-btn pago" onclick="marcarPago('nf_1775850062392_krd6_0')">✓ Pago</button>
+        <button class="action-btn del" onclick="remover('nf_1775850062392_krd6_0')">✕</button>
+      </td>
+    </tr><tr>
+      <td>
+        <div class="fornecedor-name">PLASUTIL INDUSTRIA E COMERCIO DE PLASTICOS LTDA</div>
+        <div class="cnpj">56.450.877/0003-09</div>
+      </td>
+      <td>
+        <div class="fornecedor-name" style="font-size:11px">ESTRELA COMERCIO DE UTILIDADES LTDA</div>
+      </td>
+      <td>1249400</td>
+      <td style="text-align:center">002/003</td>
+      <td>24/03/2026</td>
+      <td>18/04/2026</td>
+      <td class="valor">R$ 22.877,35</td>
+      <td><span class="badge badge-ok">A VENCER</span></td>
+      <td>
+        <button class="action-btn pago" onclick="marcarPago('nf_1775850062392_co9h_1')">✓ Pago</button>
+        <button class="action-btn del" onclick="remover('nf_1775850062392_co9h_1')">✕</button>
+      </td>
+    </tr><tr>
+      <td>
+        <div class="fornecedor-name">PLASUTIL INDUSTRIA E COMERCIO DE PLASTICOS LTDA</div>
+        <div class="cnpj">56.450.877/0003-09</div>
+      </td>
+      <td>
+        <div class="fornecedor-name" style="font-size:11px">ESTRELA COMERCIO DE UTILIDADES LTDA</div>
+      </td>
+      <td>1249400</td>
+      <td style="text-align:center">003/003</td>
+      <td>24/03/2026</td>
+      <td>25/04/2026</td>
+      <td class="valor">R$ 22.877,35</td>
+      <td><span class="badge badge-ok">A VENCER</span></td>
+      <td>
+        <button class="action-btn pago" onclick="marcarPago('nf_1775850062392_15gh_2')">✓ Pago</button>
+        <button class="action-btn del" onclick="remover('nf_1775850062392_15gh_2')">✕</button>
+      </td>
+    </tr><tr>
+      <td>
+        <div class="fornecedor-name">TRAMONTINA SUDESTE S.A.</div>
+        <div class="cnpj">61.652.608/0001-95</div>
+      </td>
+      <td>
+        <div class="fornecedor-name" style="font-size:11px">SIFRAO PAPELARIA E DESCARTAVEIS LTDA</div>
+      </td>
+      <td>2455626</td>
+      <td style="text-align:center">001/003</td>
+      <td>27/03/2026</td>
+      <td>26/04/2026</td>
+      <td class="valor">R$ 3.180,25</td>
+      <td><span class="badge badge-ok">A VENCER</span></td>
+      <td>
+        <button class="action-btn pago" onclick="marcarPago('nf_1775849168816_mdrg_0')">✓ Pago</button>
+        <button class="action-btn del" onclick="remover('nf_1775849168816_mdrg_0')">✕</button>
+      </td>
+    </tr><tr>
+      <td>
+        <div class="fornecedor-name">REVAL ATACADO DE PAPELARIA LTDA</div>
+        <div class="cnpj">52.434.156/0001-84</div>
+      </td>
+      <td>
+        <div class="fornecedor-name" style="font-size:11px">SIFRAO PAPELARIA E DESCARTAVEIS LTDA-ME</div>
+      </td>
+      <td>9033234</td>
+      <td style="text-align:center">001/003</td>
+      <td>08/04/2026</td>
+      <td>08/05/2026</td>
+      <td class="valor">R$ 499,98</td>
+      <td><span class="badge badge-ok">A VENCER</span></td>
+      <td>
+        <button class="action-btn pago" onclick="marcarPago('nf_1775849217367_5laa_0')">✓ Pago</button>
+        <button class="action-btn del" onclick="remover('nf_1775849217367_5laa_0')">✕</button>
+      </td>
+    </tr><tr>
+      <td>
+        <div class="fornecedor-name">TRAMONTINA SUDESTE S.A.</div>
+        <div class="cnpj">61.652.608/0001-95</div>
+      </td>
+      <td>
+        <div class="fornecedor-name" style="font-size:11px">SIFRAO PAPELARIA E DESCARTAVEIS LTDA</div>
+      </td>
+      <td>2455626</td>
+      <td style="text-align:center">002/003</td>
+      <td>27/03/2026</td>
+      <td>26/05/2026</td>
+      <td class="valor">R$ 3.180,24</td>
+      <td><span class="badge badge-ok">A VENCER</span></td>
+      <td>
+        <button class="action-btn pago" onclick="marcarPago('nf_1775849168816_49xa_1')">✓ Pago</button>
+        <button class="action-btn del" onclick="remover('nf_1775849168816_49xa_1')">✕</button>
+      </td>
+    </tr><tr>
+      <td>
+        <div class="fornecedor-name">REVAL ATACADO DE PAPELARIA LTDA</div>
+        <div class="cnpj">52.434.156/0001-84</div>
+      </td>
+      <td>
+        <div class="fornecedor-name" style="font-size:11px">SIFRAO PAPELARIA E DESCARTAVEIS LTDA-ME</div>
+      </td>
+      <td>9033234</td>
+      <td style="text-align:center">002/003</td>
+      <td>08/04/2026</td>
+      <td>07/06/2026</td>
+      <td class="valor">R$ 499,96</td>
+      <td><span class="badge badge-ok">A VENCER</span></td>
+      <td>
+        <button class="action-btn pago" onclick="marcarPago('nf_1775849217367_vnpd_1')">✓ Pago</button>
+        <button class="action-btn del" onclick="remover('nf_1775849217367_vnpd_1')">✕</button>
+      </td>
+    </tr><tr>
+      <td>
+        <div class="fornecedor-name">TRAMONTINA SUDESTE S.A.</div>
+        <div class="cnpj">61.652.608/0001-95</div>
+      </td>
+      <td>
+        <div class="fornecedor-name" style="font-size:11px">SIFRAO PAPELARIA E DESCARTAVEIS LTDA</div>
+      </td>
+      <td>2455626</td>
+      <td style="text-align:center">003/003</td>
+      <td>27/03/2026</td>
+      <td>25/06/2026</td>
+      <td class="valor">R$ 3.180,24</td>
+      <td><span class="badge badge-ok">A VENCER</span></td>
+      <td>
+        <button class="action-btn pago" onclick="marcarPago('nf_1775849168816_5sd4_2')">✓ Pago</button>
+        <button class="action-btn del" onclick="remover('nf_1775849168816_5sd4_2')">✕</button>
+      </td>
+    </tr><tr>
+      <td>
+        <div class="fornecedor-name">REVAL ATACADO DE PAPELARIA LTDA</div>
+        <div class="cnpj">52.434.156/0001-84</div>
+      </td>
+      <td>
+        <div class="fornecedor-name" style="font-size:11px">SIFRAO PAPELARIA E DESCARTAVEIS LTDA-ME</div>
+      </td>
+      <td>9033234</td>
+      <td style="text-align:center">003/003</td>
+      <td>08/04/2026</td>
+      <td>07/07/2026</td>
+      <td class="valor">R$ 499,96</td>
+      <td><span class="badge badge-ok">A VENCER</span></td>
+      <td>
+        <button class="action-btn pago" onclick="marcarPago('nf_1775849217367_8is8_2')">✓ Pago</button>
+        <button class="action-btn del" onclick="remover('nf_1775849217367_8is8_2')">✕</button>
+      </td>
+    </tr></tbody>
+  </table>
+</div>
+
+<div class="toast show" id="toast">✓ 1 de 1 NF(s) importada(s)</div>
+
+<script>
+let contas = [{"fornecedor":"TRAMONTINA SUDESTE S.A.","cnpj":"61.652.608/0001-95","dest_nome":"SIFRAO PAPELARIA E DESCARTAVEIS LTDA","nf":"2455626","emissao":"2026-03-27","chave":"35260361652608000195550010024556261227114424","pago":false,"id":"nf_1775849168816_mdrg_0","parcela":"001","totalParcelas":3,"vencimento":"2026-04-26","valor":3180.25},{"fornecedor":"TRAMONTINA SUDESTE S.A.","cnpj":"61.652.608/0001-95","dest_nome":"SIFRAO PAPELARIA E DESCARTAVEIS LTDA","nf":"2455626","emissao":"2026-03-27","chave":"35260361652608000195550010024556261227114424","pago":false,"id":"nf_1775849168816_49xa_1","parcela":"002","totalParcelas":3,"vencimento":"2026-05-26","valor":3180.24},{"fornecedor":"TRAMONTINA SUDESTE S.A.","cnpj":"61.652.608/0001-95","dest_nome":"SIFRAO PAPELARIA E DESCARTAVEIS LTDA","nf":"2455626","emissao":"2026-03-27","chave":"35260361652608000195550010024556261227114424","pago":false,"id":"nf_1775849168816_5sd4_2","parcela":"003","totalParcelas":3,"vencimento":"2026-06-25","valor":3180.24},{"fornecedor":"REVAL ATACADO DE PAPELARIA LTDA","cnpj":"52.434.156/0001-84","dest_nome":"SIFRAO PAPELARIA E DESCARTAVEIS LTDA-ME","nf":"9033234","emissao":"2026-04-08","chave":"35260452434156000184550010090332341289950710","pago":false,"id":"nf_1775849217367_5laa_0","parcela":"001","totalParcelas":3,"vencimento":"2026-05-08","valor":499.98},{"fornecedor":"REVAL ATACADO DE PAPELARIA LTDA","cnpj":"52.434.156/0001-84","dest_nome":"SIFRAO PAPELARIA E DESCARTAVEIS LTDA-ME","nf":"9033234","emissao":"2026-04-08","chave":"35260452434156000184550010090332341289950710","pago":false,"id":"nf_1775849217367_vnpd_1","parcela":"002","totalParcelas":3,"vencimento":"2026-06-07","valor":499.96},{"fornecedor":"REVAL ATACADO DE PAPELARIA LTDA","cnpj":"52.434.156/0001-84","dest_nome":"SIFRAO PAPELARIA E DESCARTAVEIS LTDA-ME","nf":"9033234","emissao":"2026-04-08","chave":"35260452434156000184550010090332341289950710","pago":false,"id":"nf_1775849217367_8is8_2","parcela":"003","totalParcelas":3,"vencimento":"2026-07-07","valor":499.96},{"fornecedor":"PLASUTIL INDUSTRIA E COMERCIO DE PLASTICOS LTDA","cnpj":"56.450.877/0003-09","dest_nome":"ESTRELA COMERCIO DE UTILIDADES LTDA","nf":"1249400","emissao":"2026-03-24","chave":"35260356450877000309550010012494001022350330","pago":false,"id":"nf_1775850062392_krd6_0","parcela":"001","totalParcelas":3,"vencimento":"2026-04-11","valor":23190.44},{"fornecedor":"PLASUTIL INDUSTRIA E COMERCIO DE PLASTICOS LTDA","cnpj":"56.450.877/0003-09","dest_nome":"ESTRELA COMERCIO DE UTILIDADES LTDA","nf":"1249400","emissao":"2026-03-24","chave":"35260356450877000309550010012494001022350330","pago":false,"id":"nf_1775850062392_co9h_1","parcela":"002","totalParcelas":3,"vencimento":"2026-04-18","valor":22877.35},{"fornecedor":"PLASUTIL INDUSTRIA E COMERCIO DE PLASTICOS LTDA","cnpj":"56.450.877/0003-09","dest_nome":"ESTRELA COMERCIO DE UTILIDADES LTDA","nf":"1249400","emissao":"2026-03-24","chave":"35260356450877000309550010012494001022350330","pago":false,"id":"nf_1775850062392_15gh_2","parcela":"003","totalParcelas":3,"vencimento":"2026-04-25","valor":22877.35}];
+let filtroAtivo = 'todos';
+let sortCol = 'vencimento';
+let sortAsc = true;
+
+function salvar() {
+  localStorage.setItem('contas_pagar', JSON.stringify(contas));
+}
+
+function toast(msg, tipo='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (tipo === 'error' ? ' error' : '');
+  setTimeout(() => t.className = 'toast', 2800);
+}
+
+function formatMoeda(v) {
+  return 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function formatData(iso) {
+  if (!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function getStatus(conta) {
+  if (conta.pago) return 'pago';
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const venc = new Date(conta.vencimento + 'T00:00:00');
+  const diff = Math.floor((venc - hoje) / 86400000);
+  if (diff < 0) return 'vencido';
+  if (diff <= 7) return 'vence7';
+  return 'avencer';
+}
+
+function badgeHTML(status) {
+  const map = {
+    vencido: ['badge-vencido', 'VENCIDO'],
+    vence7: ['badge-vence', 'VENCE EM BREVE'],
+    avencer: ['badge-ok', 'A VENCER'],
+    pago: ['badge-pago', 'PAGO'],
+  };
+  const [cls, label] = map[status] || ['badge-ok', status];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function setFiltro(f, btn) {
+  filtroAtivo = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTabela();
+}
+
+function sortBy(col) {
+  if (sortCol === col) sortAsc = !sortAsc;
+  else { sortCol = col; sortAsc = true; }
+  renderTabela();
+}
+
+function renderTabela() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+
+  let lista = contas.filter(c => {
+    const st = getStatus(c);
+    if (filtroAtivo !== 'todos' && st !== filtroAtivo) return false;
+    if (search && !c.fornecedor.toLowerCase().includes(search) && !c.cnpj.includes(search)) return false;
+    return true;
+  });
+
+  lista.sort((a, b) => {
+    let va = a[sortCol] || '', vb = b[sortCol] || '';
+    if (sortCol === 'valor') { va = +va; vb = +vb; }
+    if (va < vb) return sortAsc ? -1 : 1;
+    if (va > vb) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  const tbody = document.getElementById('tbodyMain');
+  const empty = document.getElementById('emptyState');
+  const tabela = document.getElementById('tabela');
+
+  if (contas.length === 0) {
+    empty.style.display = ''; tabela.style.display = 'none';
+    document.getElementById('stats').style.display = 'none';
+    return;
+  }
+
+  empty.style.display = 'none'; tabela.style.display = 'table';
+  document.getElementById('stats').style.display = 'grid';
+
+  tbody.innerHTML = lista.map(c => {
+    const st = getStatus(c);
+    const parcelaLabel = c.totalParcelas > 1
+      ? `${c.parcela}/${String(c.totalParcelas).padStart(3,'0')}`
+      : (c.parcela || '001');
+    return `<tr>
+      <td>
+        <div class="fornecedor-name">${c.fornecedor}</div>
+        <div class="cnpj">${c.cnpj || ''}</div>
+      </td>
+      <td>
+        <div class="fornecedor-name" style="font-size:11px">${c.dest_nome || '—'}</div>
+      </td>
+      <td>${c.nf || '—'}</td>
+      <td style="text-align:center">${parcelaLabel}</td>
+      <td>${formatData(c.emissao)}</td>
+      <td>${formatData(c.vencimento)}</td>
+      <td class="valor">${formatMoeda(c.valor)}</td>
+      <td>${badgeHTML(st)}</td>
+      <td>
+        <button class="action-btn pago" onclick="marcarPago('${c.id}')">${c.pago ? '↩ Desfazer' : '✓ Pago'}</button>
+        <button class="action-btn del" onclick="remover('${c.id}')">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  atualizarStats();
+}
+
+function atualizarStats() {
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+  let aVencer = 0, vencido = 0, proximo = 0, total = 0;
+  contas.forEach(c => {
+    if (c.pago) return;
+    const venc = new Date(c.vencimento + 'T00:00:00');
+    const diff = Math.floor((venc - hoje) / 86400000);
+    total += +c.valor;
+    if (diff < 0) vencido += +c.valor;
+    else { aVencer += +c.valor; if (diff <= 7) proximo += +c.valor; }
+  });
+
+  document.getElementById('statTotal').textContent = contas.length;
+  document.getElementById('statAVencer').textContent = formatMoeda(aVencer);
+  document.getElementById('statVencido').textContent = formatMoeda(vencido);
+  document.getElementById('statProximo').textContent = formatMoeda(proximo);
+  document.getElementById('statGeral').textContent = formatMoeda(total);
+
+  const now = new Date().toLocaleString('pt-BR');
+  const lu = document.getElementById('lastUpdate');
+  lu.style.display = ''; lu.textContent = `Última atualização\n${now}`;
+}
+
+function marcarPago(id) {
+  const c = contas.find(x => x.id === id);
+  if (c) { c.pago = !c.pago; salvar(); renderTabela(); toast(c.pago ? '✓ Marcado como pago' : 'Desmarcado'); }
+}
+
+function remover(id) {
+  contas = contas.filter(x => x.id !== id);
+  salvar(); renderTabela(); toast('Lançamento removido');
+}
+
+function limparTudo() {
+  if (!confirm('Apagar todos os lançamentos?')) return;
+  contas = []; salvar(); renderTabela(); toast('Tudo limpo');
+}
+
+// ============ PARSE XML ============
+function parseXML(xmlStr) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlStr, 'application/xml');
+  const err = doc.querySelector('parsererror');
+  if (err) throw new Error('XML inválido');
+
+  const get = (sel) => {
+    const el = doc.querySelector(sel);
+    return el ? el.textContent.trim() : '';
+  };
+
+  const fornecedor = get('emit xNome') || get('xNome') || 'Desconhecido';
+  const cnpj = get('emit CNPJ') || get('CNPJ') || '';
+  const cnpjFmt = cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+
+  const nNF = get('ide nNF') || get('nNF') || '';
+  const dhEmi = get('ide dhEmi') || get('dEmi') || '';
+  const emissao = dhEmi ? dhEmi.substring(0,10) : '';
+  const chave = get('chNFe') || get('Id') || '';
+  const vNF = get('ICMSTot vNF') || get('vNF') || get('vProd') || '0';
+
+  const destNome = get('dest xNome') || '';
+  const base = { fornecedor, cnpj: cnpjFmt || cnpj, dest_nome: destNome, nf: nNF, emissao, chave, pago: false };
+
+  // ---- Duplicatas: uma linha por parcela ----
+  const dups = doc.querySelectorAll('dup');
+  if (dups.length > 0) {
+    return Array.from(dups).map((dup, i) => {
+      const dVenc = dup.querySelector('dVenc');
+      const vDup  = dup.querySelector('vDup');
+      const nDup  = dup.querySelector('nDup');
+
+      let vencimento = dVenc ? dVenc.textContent.trim().substring(0,10) : '';
+      if (!vencimento && emissao) {
+        const prazo = parseInt(document.getElementById('prazoPadrao').value) || 30;
+        const d = new Date(emissao + 'T00:00:00');
+        d.setDate(d.getDate() + prazo * (i+1));
+        vencimento = d.toISOString().substring(0,10);
+      }
+
+      const parcela = nDup ? nDup.textContent.trim() : String(i+1).padStart(3,'0');
+      const valor = vDup ? parseFloat(vDup.textContent.replace(',','.')) : parseFloat(vNF.replace(',','.'));
+
+      return {
+        ...base,
+        id: 'nf_' + Date.now() + '_' + Math.random().toString(36).slice(2,6) + '_' + i,
+        parcela,
+        totalParcelas: dups.length,
+        vencimento,
+        valor,
+      };
+    });
+  }
+
+  // ---- Sem duplicatas: uma linha com prazo padrão ----
+  let vencimento = '';
+  if (emissao) {
+    const prazo = parseInt(document.getElementById('prazoPadrao').value) || 30;
+    const d = new Date(emissao + 'T00:00:00');
+    d.setDate(d.getDate() + prazo);
+    vencimento = d.toISOString().substring(0,10);
+  }
+
+  return [{
+    ...base,
+    id: 'nf_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    parcela: '001',
+    totalParcelas: 1,
+    vencimento,
+    valor: parseFloat(vNF.replace(',','.')),
+  }];
+}
+
+function processarXMLStr(xmlStr) {
+  try {
+    const parcelas = parseXML(xmlStr);
+    const chave = parcelas[0].chave;
+    // Evita duplicatas pela chave NF-e
+    if (chave && contas.some(c => c.chave === chave)) {
+      toast('⚠ NF já importada (chave duplicada)', 'error'); return false;
+    }
+    parcelas.forEach(p => contas.push(p));
+    return true;
+  } catch(e) {
+    toast('Erro ao processar XML: ' + e.message, 'error'); return false;
+  }
+}
+
+function processarXML() {
+  const txt = document.getElementById('xmlPaste').value.trim();
+  if (!txt) { toast('Cole um XML ou selecione arquivos', 'error'); return; }
+
+  if (processarXMLStr(txt)) {
+    salvar(); renderTabela();
+    document.getElementById('xmlPaste').value = '';
+    toast('✓ NF importada com sucesso!');
+  }
+}
+
+// Drag & Drop / File Input
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  processarArquivos(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', e => processarArquivos(e.target.files));
+
+function processarArquivos(files) {
+  let ok = 0;
+  const arr = Array.from(files);
+  let pending = arr.length;
+  arr.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      if (processarXMLStr(e.target.result)) ok++;
+      pending--;
+      if (pending === 0) {
+        salvar(); renderTabela();
+        toast(`✓ ${ok} de ${arr.length} NF(s) importada(s)`);
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+  });
+}
+
+// ============ EXPORT ============
+function exportarCSV() {
+  if (contas.length === 0) { toast('Nenhum dado para exportar', 'error'); return; }
+  const header = ['Fornecedor','CNPJ','NF','Emissão','Vencimento','Valor','Status','Chave'];
+  const rows = contas.map(c => [
+    `"${c.fornecedor}"`, c.cnpj, c.nf,
+    formatData(c.emissao), formatData(c.vencimento),
+    c.valor.toFixed(2).replace('.',','),
+    getStatus(c), c.chave
+  ]);
+  const csv = [header, ...rows].map(r => r.join(';')).join('\n');
+  download('contas_a_pagar.csv', '\uFEFF' + csv, 'text/csv');
+  toast('✓ CSV exportado!');
+}
+
+function exportarExcel() {
+  if (contas.length === 0) { toast('Nenhum dado para exportar', 'error'); return; }
+  // Gera HTML table que o Excel abre
+  const header = ['Fornecedor','CNPJ','NF','Emissão','Vencimento','Valor (R$)','Status'];
+  const rows = contas.map(c => [
+    c.fornecedor, c.cnpj, c.nf,
+    formatData(c.emissao), formatData(c.vencimento),
+    c.valor.toFixed(2).replace('.',','),
+    getStatus(c).toUpperCase()
+  ]);
+  let html = `<table><thead><tr>${header.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>`;
+  rows.forEach(r => { html += `<tr>${r.map(v=>`<td>${v}</td>`).join('')}</tr>`; });
+  html += '</tbody></table>';
+  const blob = new Blob(['\uFEFF' + html], {type:'application/vnd.ms-excel'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'contas_a_pagar.xls'; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast('✓ Excel exportado!');
+}
+
+function download(name, content, type) {
+  const blob = new Blob([content], {type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ============ SALVAR HTML ============
+function salvarHTML() {
+  const html = document.documentElement.outerHTML;
+  const dados = JSON.stringify(contas);
+
+  // Substitui qualquer variante da declaração de contas (com dados antigos ou JSON.parse)
+  const htmlComDados = html.replace(
+    /let contas = (?:JSON\.parse\(localStorage\.getItem\('contas_pagar'\) \|\| '\[\]'\)|\[[\s\S]*?\]);/,
+    `let contas = ${dados};`
+  );
+
+  const blob = new Blob([htmlComDados], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'contas-a-pagar.html';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast('💾 HTML salvo! Substitua o arquivo no seu PC.');
+}
+
+// Init
+renderTabela();
+</script>
+
+
+</body></html>
